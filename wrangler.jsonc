@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wedding-memory",
+  "compatibility_date": "2026-02-19",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wedding-memory-production",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "wedding-memory-bucket"
+    }
+  ],
+  "vars": {
+    "JWT_SECRET": "wedding_memory_dev_secret_key_2024"
+  }
+}
