@@ -6,13 +6,6 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "wedding-memory-production",
-      "database_id": "82ca3cce-8a00-468d-8779-4273c80a4c1f"
-    }
-  ],
   "r2_buckets": [
     {
       "binding": "R2",
