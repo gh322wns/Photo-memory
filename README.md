@@ -1,21 +1,200 @@
-```txt
+# 💍 웨딩 메모리 (Wedding Memory)
+
+소중한 웨딩의 모든 순간을 QR 코드 하나로 함께 간직하는 플랫폼
+
+## 🌐 접속 URL
+
+- **개발 서버**: `http://localhost:3000`
+- **메인 페이지**: `/`
+- **신랑신부 로그인**: `/login`
+- **신랑신부 회원가입**: `/register`
+- **웨딩 설정**: `/setup`
+- **어드민 대시보드**: `/dashboard`
+- **슈퍼어드민**: `/super`
+- **게스트 웨딩 페이지**: `/wedding/{wedding_id}`
+
+---
+
+## ✅ 구현된 기능
+
+### 신랑신부 (어드민) 플로우
+- [x] 이메일/비밀번호 회원가입 · 로그인
+- [x] 비밀번호 재설정
+- [x] JWT 기반 인증 (Web Crypto API, Cloudflare Workers 호환)
+- [x] 3가지 플랜 선택 (3일 / 7일 / 평생보관) - 현재 전체 무료
+- [x] 웨딩 정보 등록 (신부명, 신랑명, 웨딩일, 장소, 시간, 연락처)
+- [x] 커버 이미지 업로드 (JPG/PNG, 최대 10MB)
+- [x] QR 코드 자동 생성 (qrcode.js 라이브러리)
+- [x] QR 코드 PNG 다운로드
+- [x] 공유 링크 복사
+- [x] 어드민 대시보드 (업로드 통계, 파일 목록, 저장 용량)
+- [x] 업로드 활성화/비활성화 토글
+- [x] 파일 개별 삭제
+- [x] 플랜 업그레이드
+
+### 게스트 플로우
+- [x] QR 스캔 → 게스트 랜딩 페이지 (커버이미지, 커플이름, 날짜)
+- [x] 이름 입력 (필수, 최대 20자, 특수문자 제외)
+- [x] 다중 파일 업로드 (JPG, PNG, HEIC, MP4, MOV)
+- [x] 업로드 진행상태 표시
+- [x] 업로드 완료 화면 + 색종이 애니메이션
+- [x] 드래그 앤 드롭 지원
+- [x] 중복 파일 방지
+
+### 슈퍼어드민 기능
+- [x] 전체 통계 (사용자, 웨딩, 업로드, 게스트 수, 저장용량)
+- [x] 전체 웨딩 목록 (검색 포함)
+- [x] 웨딩 강제 활성화/비활성화
+- [x] 사용자 목록 조회
+
+---
+
+## 🏗️ 기술 스택
+
+| 영역 | 기술 |
+|------|------|
+| **Backend** | Hono v4 (TypeScript) |
+| **Frontend** | Vanilla JS + Tailwind CSS (CDN) |
+| **Runtime** | Cloudflare Workers / Pages |
+| **Database** | Cloudflare D1 (SQLite) |
+| **Storage** | Cloudflare R2 |
+| **Auth** | JWT (jose library, Web Crypto API) |
+| **QR Code** | qrcode.js (CDN) |
+| **빌드 도구** | Vite + @hono/vite-build |
+
+---
+
+## 📊 데이터 모델
+
+### 테이블 구조
+- **users** - 신랑신부 계정 (id, email, password_hash, name, role)
+- **plans** - 플랜 (plan_a: 3일, plan_b: 7일, plan_c: 평생)
+- **weddings** - 웨딩 정보 (커플명, 날짜, 장소, 플랜, 커버이미지)
+- **uploads** - 업로드 파일 (게스트명, 파일키, 타입, 크기)
+- **guests** - 방문 게스트 기록
+
+### 스토리지 구조 (R2)
+```
+weddings/{wedding_id}/{file_id}.{ext}   # 게스트 업로드 파일
+covers/{wedding_id}/cover.{ext}          # 커버 이미지
+```
+
+---
+
+## 🔌 API 엔드포인트
+
+### 인증
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| POST | `/api/auth/register` | 회원가입 |
+| POST | `/api/auth/login` | 로그인 |
+| POST | `/api/auth/reset-password` | 비밀번호 재설정 |
+
+### 웨딩 관리
+| Method | Endpoint | 설명 | 인증 |
+|--------|----------|------|------|
+| POST | `/api/weddings` | 웨딩 생성/수정 | ✅ |
+| GET | `/api/weddings/my` | 내 웨딩 조회 | ✅ |
+| PUT | `/api/weddings/plan` | 플랜 변경 | ✅ |
+| PUT | `/api/weddings/toggle-upload` | 업로드 토글 | ✅ |
+| GET | `/api/weddings/:id/public` | 공개 웨딩 정보 (게스트용) | ❌ |
+
+### 파일 업로드
+| Method | Endpoint | 설명 | 인증 |
+|--------|----------|------|------|
+| POST | `/api/uploads/guest/:weddingId` | 게스트 파일 업로드 | ❌ |
+| POST | `/api/uploads/cover` | 커버이미지 업로드 | ✅ |
+| GET | `/api/uploads/my` | 내 업로드 목록 | ✅ |
+| GET | `/api/uploads/download/:id` | 파일 다운로드 | ✅ |
+| DELETE | `/api/uploads/:id` | 파일 삭제 | ✅ |
+| GET | `/api/uploads/cover-image/:weddingId` | 커버이미지 조회 | ❌ |
+
+### 슈퍼어드민
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| GET | `/api/super/stats` | 전체 통계 |
+| GET | `/api/super/weddings` | 웨딩 목록 |
+| PUT | `/api/super/weddings/:id/disable` | 웨딩 비활성화 |
+| PUT | `/api/super/weddings/:id/enable` | 웨딩 활성화 |
+| GET | `/api/super/users` | 사용자 목록 |
+
+---
+
+## 🧑‍💼 기본 계정
+
+### 슈퍼어드민
+- **이메일**: `admin@wedding-memory.com`
+- **비밀번호**: `Admin@1234!`
+> ⚠️ 실제 배포 시 반드시 변경하세요!
+
+---
+
+## 🚀 로컬 개발 환경 실행
+
+```bash
+# 1. 의존성 설치
 npm install
-npm run dev
+
+# 2. 프로젝트 빌드
+npm run build
+
+# 3. D1 데이터베이스 마이그레이션 (최초 1회)
+npx wrangler d1 execute DB --local --persist-to .wrangler/state --file=./migrations/0001_initial_schema.sql
+
+# 4. 서비스 시작 (PM2)
+pm2 start ecosystem.config.cjs
+
+# 5. 서비스 확인
+curl http://localhost:3000
 ```
 
-```txt
-npm run deploy
+---
+
+## ☁️ Cloudflare 배포
+
+```bash
+# 1. Cloudflare 인증
+npx wrangler login
+
+# 2. D1 데이터베이스 생성
+npx wrangler d1 create wedding-memory-production
+
+# 3. R2 버킷 생성
+npx wrangler r2 bucket create wedding-memory-bucket
+
+# 4. wrangler.jsonc에 database_id 업데이트
+
+# 5. 프로덕션 마이그레이션
+npx wrangler d1 migrations apply wedding-memory-production
+
+# 6. JWT 시크릿 설정
+npx wrangler pages secret put JWT_SECRET --project-name wedding-memory
+
+# 7. 배포
+npm run build && npx wrangler pages deploy dist --project-name wedding-memory
 ```
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
+---
 
-```txt
-npm run cf-typegen
-```
+## 🔮 향후 개발 예정
 
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
+- [ ] SMS 알림 (업로드 발생 시 신랑신부에게)
+- [ ] AI 자동 앨범 생성
+- [ ] 얼굴 그룹화 (AI)
+- [ ] 영상 하이라이트 자동 생성
+- [ ] 슬라이드쇼 생성
+- [ ] 소셜 로그인 (Google, Kakao)
+- [ ] 유료 플랜 결제 시스템
+- [ ] ZIP 일괄 다운로드
+- [ ] 전체 파일 검색
 
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>()
-```
+---
+
+## 🛡️ 보안 사항
+
+- JWT 토큰 기반 인증 (7일 만료)
+- Web Crypto API를 통한 비밀번호 해싱 (SHA-256 + 솔트)
+- R2 서명된 URL을 통한 파일 접근
+- 파일 업로드 크기 제한 (게스트: 500MB, 커버: 10MB)
+- 파일 타입 화이트리스트 검증
+- 플랜 만료 시 업로드/다운로드 자동 비활성화
