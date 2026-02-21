@@ -73,10 +73,13 @@ weddings.post('/', authMiddleware, async (c) => {
 
       return c.json({ success: true, wedding })
     }
-  } catch (error) {
-    console.error('Wedding create error:', error)
-    return c.json({ error: '웨딩 정보 저장 중 오류가 발생했습니다.' }, 500)
-  }
+} catch (error: any) {
+  console.error('[POST /api/weddings] Wedding create error:', error)
+  return c.json(
+    { error: error?.message || String(error) },
+    500
+  )
+}
 })
 
 // 내 웨딩 조회
