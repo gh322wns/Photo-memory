@@ -1445,11 +1445,26 @@ function guestWeddingPage(weddingId: string): string {
           document.getElementById('venueName').textContent = '📍 ' + wedding.venue_name + (wedding.wedding_time ? ' · ' + wedding.wedding_time : '')
         }
 
-        // 커버 이미지
-        if (wedding.cover_image_url) {
-          document.getElementById('coverSection').innerHTML =
-            '<img src="' + wedding.cover_image_url + '" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML=document.getElementById(\\'coverFallback\\').outerHTML">'
-        }
+        // 커버 이미지 (안전 버전)
+const coverSection = document.getElementById('coverSection')
+const coverFallback = document.getElementById('coverFallback')
+
+if (wedding.cover_image_url && coverSection) {
+  coverSection.querySelectorAll('img').forEach(el => el.remove())
+
+  const img = document.createElement('img')
+  img.src = wedding.cover_image_url
+  img.className = 'w-full h-full object-cover'
+  img.loading = 'lazy'
+
+  img.onload = () => { if (coverFallback) coverFallback.style.display = 'none' }
+  img.onerror = () => {
+    img.remove()
+    if (coverFallback) coverFallback.style.display = 'flex'
+  }
+
+  coverSection.appendChild(img)
+}
 
         document.title = wedding.bride_name + ' ♥ ' + wedding.groom_name + ' - 웨딩 메모리'
         document.getElementById('mainContent').classList.remove('hidden')
