@@ -1077,10 +1077,22 @@ function dashboardPage(): string {
           statusEl.className = 'text-xs px-3 py-1 rounded-full bg-green-50 text-green-400'
         }
 
-        // 커버 이미지
-        if (wedding.cover_image_url) {
-          document.getElementById('coverThumb').innerHTML = '<img src="' + wedding.cover_image_url + '" class="w-full h-full object-cover rounded-2xl" onerror="this.parentElement.innerHTML=\'<span class=text-3xl>💍</span>\'">'
-        }
+     // 커버 이미지 (안전 버전)
+const coverThumb = document.getElementById('coverThumb')
+
+if (coverThumb) {
+  coverThumb.innerHTML = '<span class="text-3xl">💍</span>'
+
+  if (wedding.cover_image_url) {
+    coverThumb.innerHTML = ''
+    const img = document.createElement('img')
+    img.src = wedding.cover_image_url
+    img.className = 'w-full h-full object-cover rounded-2xl'
+    img.loading = 'lazy'
+    img.onerror = () => { coverThumb.innerHTML = '<span class="text-3xl">💍</span>' }
+    coverThumb.appendChild(img)
+  }
+}
 
         // 통계
         const stats = data.stats || {}
