@@ -297,9 +297,9 @@ uploads.post('/cover', authMiddleware, async (c) => {
       message: '커버 이미지가 업로드되었습니다.'
     })
   } catch (error) {
-    console.error('Cover upload error:', error)
-    return c.json({ error: '커버 이미지 업로드 중 오류가 발생했습니다.' }, 500)
-  }
+  console.error('COVER UPLOAD ERROR:', error)
+  return c.json({ error: String(error) }, 500)
+}
 })
 
 // 커버 이미지 조회 (공개)
