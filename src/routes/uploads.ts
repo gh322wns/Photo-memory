@@ -139,20 +139,26 @@ uploads.get('/my', authMiddleware, async (c) => {
       return c.json({ uploads: [], total: 0 })
     }
 
-    const uploads = await c.env.DB.prepare(
-      'SELECT * FROM uploads WHERE wedding_id = ? ORDER BY upload_at DESC LIMIT ? OFFSET ?'
-    ).bind(wedding.id, limit, offset).all()
+  const limitNum = Number(limit) || 20
+const offsetNum = Number(offset) || 0
+
+const uploadsResult = await c.env.DB.prepare(
+  `SELECT * FROM uploads 
+   WHERE wedding_id = ? 
+   ORDER BY upload_at DESC 
+   LIMIT ${limitNum} OFFSET ${offsetNum}`
+).bind(wedding.id).all()
 
     const total = await c.env.DB.prepare(
       'SELECT COUNT(*) as count FROM uploads WHERE wedding_id = ?'
     ).bind(wedding.id).first() as any
 
     return c.json({
-      uploads: uploads.results,
-      total: total?.count || 0,
-      page,
-      limit
-    })
+  uploads: uploadsResult.results || [],
+  total: total?.count || 0,
+  page,
+  limit
+})
   } catch (error) {
     return c.json({ error: '업로드 목록을 불러오는 중 오류가 발생했습니다.' }, 500)
   }
